@@ -1,4 +1,6 @@
+import groovy.json.JsonOutput.prettyPrint
 import io.github.klahap.dotenv.DotEnvBuilder
+import org.gradle.model.internal.report.unbound.UnboundRuleInput.type
 
 plugins {
     kotlin("jvm")
@@ -25,10 +27,10 @@ modstitch {
     minecraftVersion = property("deps.minecraft") as String
 
     parchment {
-        property("deps.parchment")?.let {
+        findProperty("deps.parchment")?.let {
             val (mc, mappings) = (it as String).split(':')
             minecraftVersion = mc
-            mappingsVersion = mc
+            mappingsVersion = mappings
         }
     }
 
@@ -38,10 +40,10 @@ modstitch {
         modVersion = property("version") as String
         modGroup = property("group") as String
 
-        property("authors")?.let { modAuthor = it as String }
-        property("description")?.let { modDescription = it as String }
-        property("license")?.let { modLicense = it as String }
-        property("credits")?.let { modCredits = it as String }
+        findProperty("authors")?.let { modAuthor = it as String }
+        findProperty("description")?.let { modDescription = it as String }
+        findProperty("license")?.let { modLicense = it as String }
+        findProperty("credits")?.let { modCredits = it as String }
     }
 
     mixin {
@@ -119,6 +121,15 @@ jsonlang {
     prettyPrint = true
 }
 
+tasks.register("listPlugins") {
+    doLast {
+        println(project.name)
+        project.plugins.forEach {
+            println(it.javaClass.name)
+        }
+    }
+}
+
 repositories {
     mavenLocal()
     maven("https://thedarkcolour.github.io/KotlinForForge/")
@@ -126,6 +137,7 @@ repositories {
     maven("https://maven.isxander.dev/releases")
     maven("https://maven.ryanhcode.dev/releases")
     maven("https://maven.fabricmc.net")
+    maven("https://maven.parchmentmc.org")
 
     ivy {
         url = uri("https://github.com/TheTypholorian/big_shot_lib/releases/download")
@@ -139,8 +151,7 @@ repositories {
 }
 
 dependencies {
-    // TODO
-    //modstitchModImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric-api")}")
+    modstitchModImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric-api")}")
     modstitchModImplementation(libs.flk)
 
     modstitchModCompileOnly("maven.modrinth:sodium:${property("deps.sodium")}")
@@ -166,8 +177,8 @@ publishMods {
     //additionalFiles.from(tasks.named<org.gradle.jvm.tasks.Jar>("sourcesJar").map { it.archiveFile.get() })
 
     type = STABLE
-    displayName = "${property("name")} ${property("version")} for ${stonecutter.current.version} Fabric"
-    version = "${property("version")}+${stonecutter.current.version}-fabric"
+    displayName = "${property("name")} ${property("version")} for ${property("deps.minecraft") as String} Fabric"
+    version = "${property("version")}+${property("deps.minecraft") as String}-fabric"
     changelog = ""
     //changelog = provider { rootProject.file("CHANGELOG.md").readText() }
     modLoaders.add("fabric")
@@ -175,7 +186,7 @@ publishMods {
     modrinth {
         projectId = property("publish.modrinth") as String
         accessToken = env["MODRINTH_TOKEN"]
-        minecraftVersions.add(stonecutter.current.version)
+        minecraftVersions.add(property("deps.minecraft") as String)
         minecraftVersions.addAll(additionalVersions)
         requires("fabric-api", "fabric-language-kotlin", "big-shot-lib", "yacl")
     }
@@ -184,7 +195,7 @@ publishMods {
     curseforge {
         projectId = property("publish.curseforge") as String
         accessToken = env["CURSEFORGE_TOKEN"]
-        minecraftVersions.add(stonecutter.current.version)
+        minecraftVersions.add(property("deps.minecraft") as String)
         minecraftVersions.addAll(additionalVersions)
         requires("fabric-api", "fabric-language-kotlin", "big-shot-lib", "yacl")
     }

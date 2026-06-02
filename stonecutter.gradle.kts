@@ -1,6 +1,8 @@
 plugins {
     kotlin("jvm") version libs.versions.kotlin apply false
     id("dev.kikugie.stonecutter")
+    alias(libs.plugins.loom) apply false
+    alias(libs.plugins.loom.remap) apply false
     alias(libs.plugins.moddev) apply false
     id("dev.kikugie.postprocess.jsonlang") version "2.1-beta.4" apply false
 }

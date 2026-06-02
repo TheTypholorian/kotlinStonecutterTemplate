@@ -1,6 +1,6 @@
 [versions]
 kotlin = "2.2.0"
-moddev = "2.0.140"
+moddev = "2.0.141"
 loom = "1.16-SNAPSHOT"
 dokka = "1.9.20"
 
@@ -36,3 +36,5 @@ sableCompanionFabric = { group = "dev.ryanhcode.sable-companion", name = "sable-
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 moddev = { id = "net.neoforged.moddev", version.ref = "moddev" }
+loom = { id = "net.fabricmc.fabric-loom", version.ref = "loom" }
+loom-remap = { id = "net.fabricmc.fabric-loom-remap", version.ref = "loom" }
