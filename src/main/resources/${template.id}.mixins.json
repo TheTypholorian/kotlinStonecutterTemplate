@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "${template.package}.mixin",
+  "refmap": "${template.id}.refmap.json",
+  "compatibilityLevel": "JAVA_${java}",
+  "mixins": [],
+  "client": [],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
+

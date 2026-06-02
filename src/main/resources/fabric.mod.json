@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "${id}",
+  "version": "${version}",
+  "name": "${name}",
+  "description": "${description}",
+  "authors": [
+    "${authors}"
+  ],
+  "contact": {
+    "sources": "${sources}"
+  },
+  "license": "${license}",
+  "icon": "${id}.png",
+  "environment": "*",
+  "entrypoints": {
+    "modmenu": [
+      {
+        "adapter": "kotlin",
+        "value": "${template.group}.${template.id}.ModMenuCompat"
+      }
+    ]
+  },
+  "mixins": [
+    "${id}.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": "*",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_versions}",
+    "fabric-language-kotlin": "*",
+    "yet_another_config_lib_v3": "*",
+    "sodium": "*"
+  }
+}
