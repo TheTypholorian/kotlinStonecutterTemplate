@@ -2,12 +2,16 @@ import io.github.klahap.dotenv.DotEnvBuilder
 
 plugins {
     kotlin("jvm")
-    id("net.neoforged.moddev")
-    id("dev.kikugie.postprocess.jsonlang")
-    id("me.modmuss50.mod-publish-plugin") version "2.0.0-beta.1"
-    id("com.google.devtools.ksp") version "2.2.0-2.0.2"
-    id("io.github.klahap.dotenv") version "1.1.3"
+
     id("dev.kikugie.fletching-table.neoforge") version "0.1.0-alpha.22"
+
+    id("me.modmuss50.mod-publish-plugin") version "2.0.0-beta.1"
+    id("io.github.klahap.dotenv") version "1.1.3"
+
+    id("com.google.devtools.ksp") version "2.2.0-2.0.2"
+    id("dev.kikugie.postprocess.jsonlang")
+
+    id("dev.isxander.modstitch.base") version "0.8.5"
 }
 
 fletchingTable {
@@ -16,19 +20,62 @@ fletchingTable {
     }
 }
 
-sourceSets {
-    main {
-        java {
-            if (sc.current.parsed < "1.21.5") {
-                exclude("net/typho/vibrancy/mixin/GlTextureAccessor.java")
-                exclude("net/typho/vibrancy/mixin/GlBufferAccessor.java")
-            }
+modstitch {
+    modLoaderVersion = property("deps.loader_version") as String
+    minecraftVersion = property("deps.minecraft") as String
+
+    /*
+    parchment {
+        property("deps.parchment")?.let {
+            val (mc, mappings) = (it as String).split(':')
+            minecraftVersion = mc
+            mappingsVersion = mc
         }
+    }
+     */
+
+    metadata {
+        modId = property("id") as String
+        modName = property("name") as String
+        modVersion = property("version") as String
+        modGroup = property("group") as String
+
+        property("authors")?.let { modAuthor = it as String }
+        property("description")?.let { modDescription = it as String }
+        property("license")?.let { modLicense = it as String }
+        property("credits")?.let { modCredits = it as String }
+    }
+
+    mixin {
+        configs.register(property("id") as String)
+        addMixinsToModManifest = true
+    }
+
+    finalJarTask.configure {
+        destinationDirectory.set(rootProject.file("build/libs/${project.version}"))
+    }
+
+    namedJarTask.configure {
+        destinationDirectory.set(rootProject.file("build/devlibs/${project.version}"))
+    }
+
+    loom {
+        fabricLoaderVersion = "0.19.2"
+    }
+
+    moddevgradle {
+        findProperty("deps.forge")?.let { forgeVersion = it as String }
+        findProperty("deps.neoform")?.let { neoFormVersion = it as String }
+        findProperty("deps.neoforge")?.let { neoForgeVersion = it as String }
+        findProperty("deps.mcp")?.let { mcpVersion = it as String }
+
+        defaultRuns()
     }
 }
 
 val env = DotEnvBuilder.dotEnv {
-    //addFile("$rootDir/.env")
+    addFileIfExists("$rootDir/.env")
+    addFileIfExists("$projectDir/.env")
 }
 
 kotlin {
@@ -77,47 +124,13 @@ jsonlang {
     prettyPrint = true
 }
 
-neoForge {
-    version = property("deps.neoforge") as String
-
-    if (hasProperty("deps.parchment")) parchment {
-        val (mc, ver) = (property("deps.parchment") as String).split(':')
-        mappingsVersion = ver
-        minecraftVersion = mc
-    }
-
-    runs {
-        register("client") {
-            gameDirectory = file("run/")
-            client()
-        }
-        register("server") {
-            gameDirectory = file("run/")
-            server()
-        }
-    }
-
-    mods {
-        register(property("id") as String) {
-            sourceSet(sourceSets["main"])
-        }
-    }
-    sourceSets["main"].resources.srcDir("src/main/generated")
-}
-
 repositories {
     mavenLocal()
-    maven("https://thedarkcolour.github.io/KotlinForForge/") { name = "KotlinForForge" }
-    maven {
-        name = "Modrinth"
-        url = uri("https://api.modrinth.com/maven")
-    }
-    maven("https://maven.isxander.dev/releases") {
-        name = "Xander Maven"
-    }
-    maven("https://maven.ryanhcode.dev/releases") {
-        name = "RyanHCode Maven"
-    }
+    maven("https://thedarkcolour.github.io/KotlinForForge/")
+    maven("https://api.modrinth.com/maven")
+    maven("https://maven.isxander.dev/releases")
+    maven("https://maven.ryanhcode.dev/releases")
+    maven("https://maven.fabricmc.net")
 
     ivy {
         url = uri("https://github.com/TheTypholorian/big_shot_lib/releases/download")
@@ -131,16 +144,15 @@ repositories {
 }
 
 dependencies {
-    implementation(libs.kff)
+    modstitchModImplementation(libs.kff)
 
-    implementation("maven.modrinth:sodium:${property("deps.sodium")}")
-    //compileOnly("maven.modrinth:fabric-api:${property("deps.fabric-api")}")
-    compileOnly(libs.bigShot)
-    compileOnly("maven.modrinth:yacl:${property("deps.yacl")}")
+    modstitchModImplementation("maven.modrinth:sodium:${property("deps.sodium")}")
+    modstitchModCompileOnly(libs.bigShot)
+    modstitchModCompileOnly("maven.modrinth:yacl:${property("deps.yacl")}")
 
     if (sc.current.version == "1.21") {
-        jarJar(libs.sableCompanion)
-        api(libs.sableCompanion)
+        modstitchJiJ(libs.sableCompanion)
+        modstitchModApi(libs.sableCompanion)
     }
 }
 
@@ -148,43 +160,6 @@ tasks {
     jar {
         exclude("**/*.accesswidener")
     }
-
-    processResources {
-        exclude("**/fabric.mod.json", "**/mods.toml")
-    }
-
-    named("createMinecraftArtifacts") {
-        dependsOn("stonecutterGenerate")
-    }
-
-    register<Copy>("buildAndCollect") {
-        group = "build"
-        from(jar.map { it.archiveFile }, named<org.gradle.jvm.tasks.Jar>("sourcesJar").map { it.archiveFile })
-        into(rootProject.layout.buildDirectory.file("libs/${project.property("version")}"))
-        dependsOn("build")
-    }
-}
-
-java {
-    val javaCompat = if (stonecutter.eval(stonecutter.current.version, ">=1.20.5")) {
-        JavaVersion.VERSION_21
-    } else {
-        JavaVersion.VERSION_17
-    }
-    sourceCompatibility = javaCompat
-    targetCompatibility = javaCompat
-    withSourcesJar()
-}
-
-kotlin {
-    jvmToolchain(
-        when {
-            sc.current.parsed >= "1.20.5" -> 21
-            sc.current.parsed >= "1.18" -> 17
-            sc.current.parsed >= "1.17" -> 16
-            else -> 8
-        }
-    )
 }
 
 val additionalVersionsStr = findProperty("publish.additionalVersions") as String?
@@ -196,10 +171,10 @@ val additionalVersions: List<String> = additionalVersionsStr
 
 publishMods {
     file = tasks.jar.map { it.archiveFile.get() }
-    additionalFiles.from(tasks.named<org.gradle.jvm.tasks.Jar>("sourcesJar").map { it.archiveFile.get() })
+    //additionalFiles.from(tasks.named<org.gradle.jvm.tasks.Jar>("sourcesJar").map { it.archiveFile.get() })
 
     type = STABLE
-    displayName = "${property("name")} ${property("version")} for ${stonecutter.current.version} Neoforge"
+    displayName = "${property("name")} ${property("version")} for ${stonecutter.current.version} NeoForge"
     version = "${property("version")}+${stonecutter.current.version}-neoforge"
     changelog = ""
     //changelog = provider { rootProject.file("CHANGELOG.md").readText() }

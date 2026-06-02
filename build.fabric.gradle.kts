@@ -1,16 +1,11 @@
-@file:Suppress("UnstableApiUsage")
-
-import groovy.json.JsonOutput.prettyPrint
 import io.github.klahap.dotenv.DotEnvBuilder
 
 plugins {
     kotlin("jvm")
 
-    //alias(libs.plugins.loom)
-
     id("dev.kikugie.fletching-table.fabric") version "0.1.0-alpha.22"
 
-    //id("me.modmuss50.mod-publish-plugin") version "2.0.0-beta.1"
+    id("me.modmuss50.mod-publish-plugin") version "2.0.0-beta.1"
     id("io.github.klahap.dotenv") version "1.1.3"
 
     id("com.google.devtools.ksp") version "2.2.0-2.0.2"
@@ -27,7 +22,7 @@ fletchingTable {
 
 modstitch {
     modLoaderVersion = property("deps.loader_version") as String
-    minecraftVersion = sc.current.version
+    minecraftVersion = property("deps.minecraft") as String
 
     parchment {
         property("deps.parchment")?.let {
@@ -67,10 +62,10 @@ modstitch {
     }
 
     moddevgradle {
-        property("deps.forge")?.let { forgeVersion = it as String }
-        property("deps.neoform")?.let { neoFormVersion = it as String }
-        property("deps.neoforge")?.let { neoForgeVersion = it as String }
-        property("deps.mcp")?.let { mcpVersion = it as String }
+        findProperty("deps.forge")?.let { forgeVersion = it as String }
+        findProperty("deps.neoform")?.let { neoFormVersion = it as String }
+        findProperty("deps.neoforge")?.let { neoForgeVersion = it as String }
+        findProperty("deps.mcp")?.let { mcpVersion = it as String }
 
         defaultRuns()
     }
@@ -126,21 +121,11 @@ jsonlang {
 
 repositories {
     mavenLocal()
-    maven("https://thedarkcolour.github.io/KotlinForForge/") { name = "KotlinForForge" }
-    maven {
-        name = "Modrinth"
-        url = uri("https://api.modrinth.com/maven")
-    }
-    maven("https://maven.isxander.dev/releases") {
-        name = "Xander Maven"
-    }
-    maven("https://maven.ryanhcode.dev/releases") {
-        name = "RyanHCode Maven"
-    }
-    maven {
-        name = "Fabric"
-        url = uri("https://maven.fabricmc.net")
-    }
+    maven("https://thedarkcolour.github.io/KotlinForForge/")
+    maven("https://api.modrinth.com/maven")
+    maven("https://maven.isxander.dev/releases")
+    maven("https://maven.ryanhcode.dev/releases")
+    maven("https://maven.fabricmc.net")
 
     ivy {
         url = uri("https://github.com/TheTypholorian/big_shot_lib/releases/download")
@@ -153,54 +138,20 @@ repositories {
     }
 }
 
-tasks.withType<Javadoc>().configureEach {
-    enabled = false
-}
-
 dependencies {
-    modstitch.loom {
-        modstitchModImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric-api")}")
-        modstitchModImplementation(libs.flk)
+    // TODO
+    //modstitchModImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric-api")}")
+    modstitchModImplementation(libs.flk)
 
-        modstitchModCompileOnly("maven.modrinth:sodium:${property("deps.sodium")}")
-        modstitchModCompileOnly(libs.bigShot)
-        modstitchModCompileOnly("maven.modrinth:yacl:${property("deps.yacl")}")
-        modstitchModCompileOnly(libs.modmenu)
+    modstitchModCompileOnly("maven.modrinth:sodium:${property("deps.sodium")}")
+    modstitchModCompileOnly(libs.bigShot)
+    modstitchModCompileOnly("maven.modrinth:yacl:${property("deps.yacl")}")
+    modstitchModCompileOnly(libs.modmenu)
 
-        if (sc.current.version == "1.21") {
-            include(libs.sableCompanionFabric)
-            modstitchModApi(libs.sableCompanionFabric)
-        }
+    if (sc.current.version == "1.21") {
+        modstitchJiJ(libs.sableCompanionFabric)
+        modstitchModApi(libs.sableCompanionFabric)
     }
-}
-
-fabricApi {
-    configureDataGeneration() {
-        outputDirectory = file("$rootDir/src/main/generated")
-        //client = true
-    }
-}
-
-java {
-    val javaCompat = when {
-        sc.current.parsed >= "1.20.5" -> JavaVersion.VERSION_21
-        sc.current.parsed >= "1.18" -> JavaVersion.VERSION_17
-        sc.current.parsed >= "1.17" -> JavaVersion.VERSION_16
-        else -> JavaVersion.VERSION_1_8
-    }
-    sourceCompatibility = javaCompat
-    targetCompatibility = javaCompat
-}
-
-kotlin {
-    jvmToolchain(
-        when {
-            sc.current.parsed >= "1.20.5" -> 21
-            sc.current.parsed >= "1.18" -> 17
-            sc.current.parsed >= "1.17" -> 16
-            else -> 8
-        }
-    )
 }
 
 val additionalVersionsStr = findProperty("publish.additionalVersions") as String?
@@ -210,10 +161,9 @@ val additionalVersions: List<String> = additionalVersionsStr
     ?.filter { it.isNotEmpty() }
     ?: emptyList()
 
-/*
 publishMods {
-    file = tasks.remapJar.map { it.archiveFile.get() }
-    additionalFiles.from(tasks.remapSourcesJar.map { it.archiveFile.get() })
+    file = modstitch.finalJarTask.map { it.archiveFile.get() }
+    //additionalFiles.from(tasks.named<org.gradle.jvm.tasks.Jar>("sourcesJar").map { it.archiveFile.get() })
 
     type = STABLE
     displayName = "${property("name")} ${property("version")} for ${stonecutter.current.version} Fabric"
@@ -240,4 +190,3 @@ publishMods {
     }
      */
 }
- */
