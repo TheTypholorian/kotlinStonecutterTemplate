@@ -2,34 +2,24 @@
   "schemaVersion": 1,
   "id": "${id}",
   "version": "${version}",
-  "name": "${name}",
-  "description": "${description}",
-  "authors": [
-    "${authors}"
-  ],
   "contact": {
-    "sources": "${sources}"
+    "issues": "https://github.com/${template.github}/issues/",
+    "sources": "https://github.com/${template.github}/"
   },
-  "license": "${license}",
-  "icon": "${id}.png",
-  "environment": "*",
+  "icon": "icon.png",
   "entrypoints": {
     "modmenu": [
       {
         "adapter": "kotlin",
-        "value": "${template.group}.${template.id}.ModMenuCompat"
+        "value": "${group}.${id}.ModMenuCompat"
       }
     ]
   },
-  "mixins": [
-    "${id}.mixins.json"
-  ],
   "depends": {
-    "fabricloader": "*",
     "fabric-api": "*",
-    "minecraft": "${minecraft_versions}",
+    "minecraft": "${minecraft_version_range}",
     "fabric-language-kotlin": "*",
-    "yet_another_config_lib_v3": "*",
-    "sodium": "*"
+    "big_shot_lib": ">=${big_shot_version}",
+    "yet_another_config_lib_v3": ">=${yacl_version}"
   }
 }

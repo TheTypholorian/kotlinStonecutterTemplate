@@ -1,4 +1,5 @@
 import io.github.klahap.dotenv.DotEnvBuilder
+import org.gradle.model.internal.report.unbound.UnboundRuleInput.type
 
 plugins {
     kotlin("jvm")
@@ -8,10 +9,25 @@ plugins {
     id("me.modmuss50.mod-publish-plugin") version "2.0.0-beta.1"
     id("io.github.klahap.dotenv") version "1.1.3"
 
-    id("com.google.devtools.ksp") version "2.2.0-2.0.2"
-    id("dev.kikugie.postprocess.jsonlang")
+    id("com.google.devtools.ksp") version "2.3.9"
 
     id("dev.isxander.modstitch.base") version "0.8.5"
+
+    id("net.typho.big_shot_lib.plugin") version "1.0.0"
+}
+
+bigShotLib {
+    version(sc.current.version)
+    loader("neoforge")
+
+    transformInfo {
+        shortIdentifierMethods()
+        defaultDeprecatedMethods()
+        defaultInterfaceInjections()
+
+        clientOnlyPackages.add("${template.group.dash}/${template.id}/client")
+        clientOnlyPackages.add("${template.group.dash}/${template.id}/mixin/client")
+    }
 }
 
 fletchingTable {
@@ -42,6 +58,12 @@ modstitch {
         findProperty("description")?.let { modDescription = it as String }
         findProperty("license")?.let { modLicense = it as String }
         findProperty("credits")?.let { modCredits = it as String }
+
+        replacementProperties.put("id", property("id") as String)
+        replacementProperties.put("minecraft_version_range", project.property("deps.minecraft_range") as String)
+        replacementProperties.put("big_shot_version", project.property("deps.big_shot") as String)
+        replacementProperties.put("yacl_version", project.property("deps.yacl") as String)
+        replacementProperties.put("sodium_version", project.property("deps.sodium") as String)
     }
 
     mixin {
@@ -54,11 +76,9 @@ modstitch {
     }
 
     namedJarTask.configure {
-        destinationDirectory.set(rootProject.file("build/devlibs/${project.version}"))
-    }
-
-    loom {
-        fabricLoaderVersion = "0.19.2"
+        if (finalJarTask.get() != this) {
+            destinationDirectory.set(rootProject.file("build/devlibs/${project.version}"))
+        }
     }
 
     moddevgradle {
@@ -82,10 +102,6 @@ kotlin {
     }
 }
 
-tasks.withType<Jar> {
-    destinationDirectory.set(rootProject.file("build/libs/${project.version}"))
-}
-
 val processResources = tasks.named<ProcessResources>("processResources") {
     val props = HashMap<String, String>().apply {
         this["java_version"] = when {
@@ -94,33 +110,17 @@ val processResources = tasks.named<ProcessResources>("processResources") {
             sc.current.parsed >= "1.17" -> "16"
             else -> "8"
         }
-        this["id"] = project.property("id") as String
-        this["name"] = project.property("name") as String
-        this["version"] = project.property("version") as String
-        this["authors"] = project.property("authors") as String
-        this["description"] = project.property("description") as String
-        this["credits"] = project.property("credits") as String
-        this["license"] = project.property("license") as String
-
-        this["minecraft_versions"] = (project.property("deps.minecraft_range") ?: "[${project.property("deps.minecraft")}]") as String
-        this["yacl_version"] = project.property("deps.yacl") as String
-        this["sodium_version"] = project.property("deps.sodium") as String
     }
 
     inputs.properties(props)
 
-    filesMatching(listOf("fabric.mod.json", "META-INF/neoforge.mods.toml", "META-INF/mods.toml", "**/*.mixins.json")) {
+    filesMatching(listOf("**/*.mixins.json")) {
         expand(props)
     }
 }
 
 version = "${property("version")}+${property("deps.minecraft")}-neoforge"
 base.archivesName = property("id") as String
-
-jsonlang {
-    languageDirectories = listOf("assets/${property("id")}/lang")
-    prettyPrint = true
-}
 
 repositories {
     mavenLocal()
@@ -143,15 +143,14 @@ repositories {
 }
 
 dependencies {
-    modstitchModImplementation(libs.kff)
+    modstitchModImplementation("thedarkcolour:kotlinforforge-neoforge:5.9.0")
 
-    modstitchModImplementation("maven.modrinth:sodium:${property("deps.sodium")}")
-    modstitchModCompileOnly(libs.bigShot)
+    //modstitchModImplementation("maven.modrinth:sodium:${property("deps.sodium")}")
+    modstitchModCompileOnly("net.typho:big_shot_lib:${property("deps.big_shot")}")
     modstitchModCompileOnly("maven.modrinth:yacl:${property("deps.yacl")}")
 
-    if (sc.current.version == "1.21") {
-        modstitchJiJ(libs.sableCompanion)
-        modstitchModApi(libs.sableCompanion)
+    findProperty("deps.sable_companion")?.let {
+        modstitchJiJ(modstitchModApi("dev.ryanhcode.sable-companion:sable-companion-common-${property("deps.minecraft")}:[${it},)")!!)
     }
 }
 
@@ -161,39 +160,40 @@ tasks {
     }
 }
 
-val additionalVersionsStr = findProperty("publish.additionalVersions") as String?
-val additionalVersions: List<String> = additionalVersionsStr
+val additionalVersions: List<String> = (findProperty("publish.additionalVersions") as? String)
     ?.split(",")
     ?.map { it.trim() }
     ?.filter { it.isNotEmpty() }
     ?: emptyList()
 
 publishMods {
-    file = tasks.jar.map { it.archiveFile.get() }
-    //additionalFiles.from(tasks.named<org.gradle.jvm.tasks.Jar>("sourcesJar").map { it.archiveFile.get() })
+    file = modstitch.finalJarTask.map { it.archiveFile.get() }
+    additionalFiles.from(tasks.kotlinSourcesJar)
 
     type = STABLE
-    displayName = "${property("name")} ${property("version")} for ${property("deps.minecraft") as String} NeoForge"
-    version = "${property("version")}+${property("deps.minecraft") as String}-neoforge"
+    displayName = "${property("name")} ${property("version")} for ${property("deps.minecraft") as String} Fabric"
+    version = "${property("version")}+${property("deps.minecraft") as String}-fabric"
     changelog = ""
     //changelog = provider { rootProject.file("CHANGELOG.md").readText() }
-    modLoaders.add("neoforge")
+    modLoaders.add("fabric")
 
-    modrinth {
-        projectId = property("publish.modrinth") as String
-        accessToken = env["MODRINTH_TOKEN"]
-        minecraftVersions.add(property("deps.minecraft") as String)
-        minecraftVersions.addAll(additionalVersions)
-        requires("kotlin-for-forge", "big-shot-lib", "yacl")
+    findProperty("publish.modrinth")?.let {
+        modrinth {
+            projectId = it as String
+            accessToken = env["MODRINTH_TOKEN"]
+            minecraftVersions.add(property("deps.minecraft") as String)
+            minecraftVersions.addAll(additionalVersions)
+            requires("fabric-api", "fabric-language-kotlin", "big-shot-lib", "yacl")
+        }
     }
 
-    /*
-    curseforge {
-        projectId = property("publish.curseforge") as String
-        accessToken = env["CURSEFORGE_TOKEN"]
-        minecraftVersions.add(property("deps.minecraft") as String)
-        minecraftVersions.addAll(additionalVersions)
-        requires("kotlin-for-forge", "big-shot-lib", "yacl")
+    findProperty("publish.curseforge")?.let {
+        curseforge {
+            projectId = it as String
+            accessToken = env["CURSEFORGE_TOKEN"]
+            minecraftVersions.add(property("deps.minecraft") as String)
+            minecraftVersions.addAll(additionalVersions)
+            requires("fabric-api", "fabric-language-kotlin", "big-shot-lib", "yacl")
+        }
     }
-     */
 }

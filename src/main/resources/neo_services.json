@@ -1,0 +1,8 @@
+{
+  "net.typho.big_shot_lib.api.NeoCommonInitializer": [
+    "${template.group}.${template.id}.${template.class}"
+  ],
+  "net.typho.big_shot_lib.api.client.NeoClientInitializer": [
+    "${template.group}.${template.id}.client.${template.class}Client"
+  ]
+}

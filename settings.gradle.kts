@@ -7,17 +7,10 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
         mavenCentral()
+        mavenLocal()
         maven("https://maven.fabricmc.net")
         maven("https://maven.kikugie.dev/snapshots")
         maven("https://maven.kikugie.dev/releases")
-    }
-}
-
-dependencyResolutionManagement {
-    versionCatalogs {
-        register("libs") {
-            from(files("libs.versions.toml"))
-        }
     }
 }
 
@@ -31,9 +24,9 @@ stonecutter {
         fun match(loader: String, vararg versions: String) = versions
             .forEach { version("mc${it.replace('.', '_')}_$loader", it).buildscript = "build.$loader.gradle.kts" }
 
-        match("fabric", "1.20", "1.21", "1.21.11", "26.1")
-        match("neoforge", "1.21", "1.21.11", "26.1")
+        match("fabric", "1.21.1", "1.21.11", "26.1.2")
+        match("neoforge", "1.21.1", "1.21.11", "26.1.2")
 
-        vcsVersion = "mc1_21_fabric"
+        vcsVersion = "mc1_21_1_fabric"
     }
 }

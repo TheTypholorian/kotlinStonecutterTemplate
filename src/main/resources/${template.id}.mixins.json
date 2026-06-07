@@ -1,7 +1,7 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "${template.package}.mixin",
+  "package": "${template.group.dot}.${template.id}.mixin",
   "refmap": "${template.id}.refmap.json",
   "compatibilityLevel": "JAVA_${java}",
   "mixins": [],
@@ -10,4 +10,3 @@
     "defaultRequire": 1
   }
 }
-
