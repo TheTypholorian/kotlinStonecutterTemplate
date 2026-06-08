@@ -19,7 +19,7 @@ stonecutter parameters {
 
 stonecutter tasks {
     order("publishModrinth")
-    order("publishCurseforge")
+    //order("publishCurseforge")
 }
 
 for (version in stonecutter.versions.map { it.version }.distinct()) tasks.register("publish$version") {
