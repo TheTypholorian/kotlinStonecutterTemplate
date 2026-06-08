@@ -1,1 +1,1 @@
-Go to https://typho.net/dev-utils/templates/kotlin-stonecutter.html for a generator
+Go to https://typho.net/dev-utils/templates/kotlin-big-shot-lib.html for a generator
