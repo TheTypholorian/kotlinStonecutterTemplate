@@ -3,6 +3,14 @@ loaderVersion = "*"
 issueTrackerURL="https://github.com/${template.github}/issues/"
 logoFile="icon.png"
 
+[[mods]]
+modId = "${id}"
+version = "${version}"
+displayName = "${name}"
+logoFile = "icon.png"
+authors = "${authors}"
+description = '''${description}'''
+
 [[dependencies."${id}"]]
 modId = "neoforge"
 type="required"

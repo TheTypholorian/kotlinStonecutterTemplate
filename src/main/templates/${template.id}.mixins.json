@@ -3,7 +3,7 @@
   "minVersion": "0.8",
   "package": "${template.group.dot}.${template.id}.mixin",
   "refmap": "${template.id}.refmap.json",
-  "compatibilityLevel": "JAVA_${java}",
+  "compatibilityLevel": "JAVA_${java_version}",
   "mixins": [],
   "client": [],
   "injectors": {

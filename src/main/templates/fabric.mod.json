@@ -2,6 +2,12 @@
   "schemaVersion": 1,
   "id": "${id}",
   "version": "${version}",
+  "name": "${name}",
+  "description": "${description}",
+  "authors": [
+    "${authors}"
+  ],
+  "license": "${license}",
   "contact": {
     "issues": "https://github.com/${template.github}/issues/",
     "sources": "https://github.com/${template.github}/"
@@ -11,7 +17,7 @@
     "modmenu": [
       {
         "adapter": "kotlin",
-        "value": "${group}.${id}.ModMenuCompat"
+        "value": "${template.group.dot}.${template.id}.ModMenuCompat"
       }
     ]
   },
