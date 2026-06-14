@@ -147,7 +147,6 @@ base.archivesName = property("id") as String
 
 repositories {
     mavenLocal()
-    maven("https://thedarkcolour.github.io/KotlinForForge/")
     maven("https://api.modrinth.com/maven")
     maven("https://maven.isxander.dev/releases")
     maven("https://maven.ryanhcode.dev/releases")
