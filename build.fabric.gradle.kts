@@ -25,10 +25,8 @@ bigShotLib {
         defaultDeprecatedMethods()
         defaultInterfaceInjections()
 
-        clientOnlyPackages.add("net/typho/big_shot_lib/api/client")
-        clientOnlyPackages.add("net/typho/big_shot_lib/impl/client")
-        clientOnlyPackages.add("net/typho/big_shot_lib/mixin/api/client")
-        clientOnlyPackages.add("net/typho/big_shot_lib/mixin/impl/client")
+        clientOnlyPackages.add("${template.group.dash}/${template.id}/client")
+        clientOnlyPackages.add("${template.group.dash}/${template.id}/mixin/client")
     }
 }
 
