@@ -205,7 +205,7 @@ publishMods {
             accessToken = env["MODRINTH_TOKEN"]
             minecraftVersions.add(property("deps.minecraft") as String)
             minecraftVersions.addAll(additionalVersions)
-            requires("fabric-api", "fabric-language-kotlin", "big-shot-lib", "yacl")
+            requires("fabric-api", "kotlin-for-forge", "big-shot-lib", "yacl")
         }
     }
 
@@ -215,7 +215,7 @@ publishMods {
             accessToken = env["CURSEFORGE_TOKEN"]
             minecraftVersions.add(property("deps.minecraft") as String)
             minecraftVersions.addAll(additionalVersions)
-            requires("fabric-api", "fabric-language-kotlin", "big-shot-lib", "yacl")
+            requires("fabric-api", "kotlin-for-forge", "big-shot-lib", "yacl")
         }
     }
 }
